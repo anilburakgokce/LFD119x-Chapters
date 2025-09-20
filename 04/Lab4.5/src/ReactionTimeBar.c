@@ -60,7 +60,7 @@ void delay(int num) {
 }
 
 unsigned int readSwitches() {
-    int switches_value = (GPIO_SWs);   // read value on switches
+    int switches_value = READ_GPIO(GPIO_SWs);   // read value on switches
     // int switches_value = 0xffff0000;
     switches_value = switches_value >> 16;  // shift into lower 16 bits
 

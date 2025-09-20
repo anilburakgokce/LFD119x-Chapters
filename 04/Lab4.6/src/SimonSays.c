@@ -14,33 +14,80 @@
 void initGPIO();
 void delay(int num);
 unsigned int readSwitches();
-int waitForTheUser();
-void displayReactionTime(unsigned int time);
-int waitForTheStart();
+
+unsigned int waitForReset(){
+  volatile unsigned int count = 0;
+  volatile int sw15 = readSwitches() & 0x8000;
+
+  // Wait for the left-most switch to be on
+  while(!sw15){
+    count++;
+    sw15 = readSwitches() & 0x8000;
+  }
+
+  // Wait for the left-most switch to be off
+  while(sw15){
+    count++;
+    sw15 = readSwitches() & 0x8000;
+  }
+
+  return count;
+}
+
+// returns 0 iff a reset is initiated
+unsigned int waitForPlayer(int led_conf, int led_count){
+
+  unsigned int count = 1;
+  int switches_value = 0;
+  int extracted_switches = readSwitches() & ((1 << led_count) - 1);
+
+  while(extracted_switches != led_conf){
+    count++;
+    switches_value = readSwitches();
+
+    // check for reset
+    if(switches_value & 0x8000){
+      return 0;
+    }
+
+    extracted_switches = switches_value & ((1 << led_count) - 1);
+  }
+
+  return count;
+}
+
+void writeLEDs(int led_conf){
+  WRITE_GPIO(GPIO_LEDs, led_conf);
+}
 
 int main ( void )
 {
   initGPIO();
   uartInit();
-
-  volatile int switches_value;
   
   while (1) { 
-
-    int seed = waitForTheStart();
+    unsigned int seed = waitForReset();
     srand(seed);
+    writeLEDs(0); // turn off all LEDs
+    delay(1000); // wait for one second
 
-    WRITE_GPIO(GPIO_LEDs, 0); // turn all the LEDs off
+    for(int led_count = 3; led_count < 16; led_count++){
+      int led_conf = rand() & ((1 << led_count) - 1);
 
-    // wait between 500 ms and 3000 ms
-    int time = (rand() % 2500) + 500;
-    delay(time);
+      // blink the LEDs
+      writeLEDs(led_conf);
+      delay(1000); 
+      writeLEDs(0);
 
-    WRITE_GPIO(GPIO_LEDs, 0xffff); // turn all the LEDs on
+      seed = waitForPlayer(led_conf, led_count);
+      if(!seed){
+        break;
+      }
 
-    int result = waitForTheUser();
-
-    displayReactionTime(result);
+      // wait 1 second for the next round
+      delay(1000);
+    }
+    
   }
 
   return(0);
@@ -60,39 +107,9 @@ void delay(int num) {
 }
 
 unsigned int readSwitches() {
-    int switches_value = (GPIO_SWs);   // read value on switches
+    int switches_value = READ_GPIO(GPIO_SWs);   // read value on switches
     // int switches_value = 0xffff0000;
     switches_value = switches_value >> 16;  // shift into lower 16 bits
 
   return switches_value & 0xffff;
-}
-
-int waitForTheUser(){
-  volatile int count = 0;
-  
-  while(!(readSwitches() & 1)){
-    count++;
-  }
-  return count/DELAY_MS;
-}
-
-// display reaction time on LEDs and serial monitor
-void displayReactionTime(unsigned int time) {
-
-  // constant time if implementation
-  int led_conf_1 = 0xff;
-  int led_count = time/100;
-  int led_conf_2 = (1 << led_count) - 1;
-  int led_conf = (time > 800) ? led_conf_1 : led_conf_2;  
-
-  WRITE_GPIO(GPIO_LEDs, led_conf);       
-}
-
-int waitForTheStart(){
-  volatile int count = 0;
-  
-  while(readSwitches() & 1){
-    count++;
-  }
-  return count/DELAY_MS;
 }
