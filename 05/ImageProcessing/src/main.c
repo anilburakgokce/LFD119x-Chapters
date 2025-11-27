@@ -45,6 +45,22 @@ void ColourToGrey(RGB Colour[N][M], unsigned char Grey[N][M]) {
             Grey[i][j] =  ColourToGrey_Pixel(Colour[i][j].R, Colour[i][j].G, Colour[i][j].B); 
 }
 
+int closeToWhite = 0;
+int closeToBlack = 0;
+int countExtremes(unsigned char Grey[N][M]){
+
+    for(int i = 0; i < N; i++){
+        for(int j = 0; j < M; j++){
+            if(Grey[i][j] > 235){
+                closeToWhite++;
+            }
+            else if(Grey[i][j] < 20){
+                closeToBlack++;
+            }
+        }
+    }
+}
+
 
 int main(void) {
     // Create an NxM matrix using the input image
@@ -57,6 +73,11 @@ int main(void) {
     uartInit();
     // Print message on the serial output
     printfNexys("Created Grey Image");
+
+    // Lab 5.2
+    countExtremes(GreyImage);
+    printfNexys("\nNumber of pixels close to white: %d\n", closeToWhite);
+    printfNexys("Number of pixels close to black: %d\n", closeToBlack);
 
     while(1);
 
