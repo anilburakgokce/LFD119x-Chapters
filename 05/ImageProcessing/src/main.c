@@ -16,9 +16,9 @@ typedef struct {
 } RGB;
 
 
-#define N 128
-#define M 128
-extern unsigned char VanGogh_128x128[];
+#define N 256
+#define M 256
+extern unsigned char TheScream_256x256[];
 RGB ColourImage[N][M];
 unsigned char GreyImage[N][M];
 
@@ -28,9 +28,9 @@ void initColourImage(RGB image[N][M]) {
 
     for (i=0;i<N;i++)
         for (j=0; j<M; j++) {
-            image[i][j].R = VanGogh_128x128[(i*M + j)*3];
-            image[i][j].G = VanGogh_128x128[(i*M + j)*3 + 1];
-            image[i][j].B = VanGogh_128x128[(i*M + j)*3 + 2];
+            image[i][j].R = TheScream_256x256[(i*M + j)*3];
+            image[i][j].G = TheScream_256x256[(i*M + j)*3 + 1];
+            image[i][j].B = TheScream_256x256[(i*M + j)*3 + 2];
         }
 }
 
