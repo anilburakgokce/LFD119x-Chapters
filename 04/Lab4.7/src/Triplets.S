@@ -6,10 +6,12 @@
 A: .word 7,3,25,4,75,2,1,1,3,2,8,4
 B: .word 0,0,0,0
 
+.text
 
 # input a0: number
 # output a0: absolute value of number
 f_abs:
+    # set a0 = 0-a0 if a0 < 0
     blt x0, a0, end_abs
     sub a0, x0, a0
 end_abs:
@@ -20,6 +22,10 @@ end_abs:
 # input a1: index
 # output a0: sum
 res_triplet:
+    # function intro
+    addi sp, sp, -16
+    sw  ra, 0(sp)
+
     slli a1, a1, 2 # mov offset to a1
 
     add a1, a0, a1 # set the address
@@ -37,10 +43,19 @@ f_loop_1:
     # call abs
     jal f_abs
 
+    # function outro
+    lw  ra, (sp)
+    addi sp, sp, 16
     ret
 
 
 main:
+    # save registers to stack
+    addi sp, sp, -16
+    sw  ra, 0(sp)
+    sw  s0, 4(sp)
+    sw  s1, 8(sp)
+
     li  s0, 0 # init index j for A
     li  s1, 0 # init index i for B
 
@@ -64,3 +79,12 @@ loop1:
     li  t0, N
     blt s1, t0, loop1
 
+    # reload the registers in the stack
+    lw  s1, 8(sp)
+    lw  s0, 4(sp)
+    lw  ra, 0(sp)
+    addi sp, sp, 16
+
+    ret
+
+.end
