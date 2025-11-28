@@ -34,7 +34,7 @@ void initColourImage(RGB image[N][M]) {
         }
 }
 
-
+#if 0
 extern int ColourToGrey_Pixel(int R, int G, int B);
 
 void ColourToGrey(RGB Colour[N][M], unsigned char Grey[N][M]) {
@@ -44,6 +44,16 @@ void ColourToGrey(RGB Colour[N][M], unsigned char Grey[N][M]) {
         for (j=0; j<M; j++)
             Grey[i][j] =  ColourToGrey_Pixel(Colour[i][j].R, Colour[i][j].G, Colour[i][j].B); 
 }
+#else
+int ColourToGrey_Pixel(int R, int G, int B){
+    return (R*306 + G*601 + B*117) >> 10;
+}
+
+extern void ColourToGrey(RGB Colour[N][M], unsigned char Grey[N][M]);
+
+#endif
+
+
 
 int closeToWhite = 0;
 int closeToBlack = 0;
