@@ -16,9 +16,9 @@ typedef struct {
 } RGB;
 
 
-#define N 256
-#define M 256
-extern unsigned char TheScream_256x256[];
+#define N 128
+#define M 128
+extern unsigned char VanGogh_128x128[];
 RGB ColourImage[N][M];
 unsigned char GreyImage[N][M];
 
@@ -28,9 +28,9 @@ void initColourImage(RGB image[N][M]) {
 
     for (i=0;i<N;i++)
         for (j=0; j<M; j++) {
-            image[i][j].R = TheScream_256x256[(i*M + j)*3];
-            image[i][j].G = TheScream_256x256[(i*M + j)*3 + 1];
-            image[i][j].B = TheScream_256x256[(i*M + j)*3 + 2];
+            image[i][j].R = VanGogh_128x128[(i*M + j)*3];
+            image[i][j].G = VanGogh_128x128[(i*M + j)*3 + 1];
+            image[i][j].B = VanGogh_128x128[(i*M + j)*3 + 2];
         }
 }
 
@@ -71,23 +71,64 @@ int countExtremes(unsigned char Grey[N][M]){
     }
 }
 
+// lab 5.4
+#define filterWidth 5
+#define filterHeight 5
+
+int blurFilter[filterHeight][filterWidth] =
+{
+  0, 0, 1, 0, 0,
+  0, 1, 1, 1, 0,
+  1, 1, 1, 1, 1,
+  0, 1, 1, 1, 0,
+  0, 0, 1, 0, 0,
+};
+
+double factor = 1.0 / 13.0;
+
+RGB BlurredImage[N][M];
+
+void blurImage(RGB blurredImage[N][M], RGB image[N][M]){
+    for(int i=0;i<N;i++){
+        for (int j=0; j<M; j++) {
+            double red = 0, green = 0, blue = 0;
+            for(int mIndex = 0; mIndex < filterHeight; mIndex++){
+                for(int mJindex = 0; mJindex < filterWidth; mJindex++){
+                    RGB pixel = image[(i+mIndex-(filterHeight/2)+N)%N][(j+mJindex-(filterWidth/2)+M)%M];
+                    red += pixel.R * blurFilter[mIndex][mJindex];
+                    green += pixel.G * blurFilter[mIndex][mJindex];
+                    blue += pixel.B * blurFilter[mIndex][mJindex];
+                }
+            }
+            blurredImage[i][j].R = (char) (red*factor);
+            blurredImage[i][j].G = (char) (green*factor);
+            blurredImage[i][j].B = (char) (blue*factor);
+        }
+    }
+}
 
 int main(void) {
     // Create an NxM matrix using the input image
     initColourImage(ColourImage);
 
     // Transform Colour Image to Grey Image
-    ColourToGrey(ColourImage,GreyImage);
+    // ColourToGrey(ColourImage,GreyImage);
 
     // Initialize Uart
     uartInit();
     // Print message on the serial output
-    printfNexys("Created Grey Image");
+    // printfNexys("Created Grey Image");
 
+#if 0
     // Lab 5.2
     countExtremes(GreyImage);
     printfNexys("\nNumber of pixels close to white: %d\n", closeToWhite);
     printfNexys("Number of pixels close to black: %d\n", closeToBlack);
+#endif
+
+    // Lab 5.4
+    blurImage(BlurredImage, ColourImage);
+    printfNexys("Created Blurred Image");
 
     while(1);
 
