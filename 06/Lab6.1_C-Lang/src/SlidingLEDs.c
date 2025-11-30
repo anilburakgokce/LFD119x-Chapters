@@ -1,3 +1,4 @@
+#if 0
 #define GPIO_SWs    0x80001400
 #define GPIO_LEDs   0x80001404
 #define GPIO_INOUT  0x80001408
@@ -88,3 +89,4 @@ int main ( void )
 
     return(0);
 }
+#endif
