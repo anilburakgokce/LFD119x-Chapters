@@ -1,4 +1,4 @@
-// memory-mapped I/O addresses
+# memory-mapped I/O addresses
 # GPIO_IN   = 0x80001400
 # GPIO_OUT  = 0x80001404
 # GPIO_INOUT = 0x80001408
@@ -16,25 +16,33 @@
 # output:
 # a0: next LED values
 nextLEDvalues:
+    mv  t1, a0 # save LED values for future use
 
     li  t0, left
     beq a1, t0, directionLeft
 
     # handle right direction
     srli a0, a0, 1
-    # handle cases 0, 0x8000, 0xC000, 0xE000, 0xF000
-    li t0, 1
-    slli t0, 15
+
+    # handle cases 0, 0x8000, 0xC000, 0xE000
+    slli t1, t1, 3
+    li  t2, 0xFFFF
+    and t1, t1, t2
+    bnez t1, nextLEDvaluesEnd
+
+    li  t0, 1
+    slli t0, t0, 15
     or a0, a0, t0
-    j nextLEDvalues
+    j nextLEDvaluesEnd
 
 directionLeft:
     slli a0, a0, 1
-    andi a0, a0, 0xFFFF
+    li  t0, 0xFFFF
+    and a0, a0, t0
     
     # handle cases 0,1,3,or 7
     li t0, 0xF
-    bge a0, t0 nextLEDvaluesEnd
+    bge t1, t0, nextLEDvaluesEnd
     addi a0, a0, 1
 
 nextLEDvaluesEnd:
@@ -98,10 +106,10 @@ switches_check_end:
     li  s1, 0 # reset the counter
 
     # call nextLEDvalues
-    mov a0, s3
-    mov a1, s2
+    add a0, s3, zero
+    add a1, s2, zero
     call nextLEDvalues
-    mov s3, a0
+    add s3, a0, zero
     
     sw  s3, 4(s0)      # write value to LEDs
     j   repeat         # repeat loop
