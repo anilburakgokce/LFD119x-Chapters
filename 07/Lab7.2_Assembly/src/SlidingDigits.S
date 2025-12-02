@@ -10,10 +10,13 @@
 
 main:
     # enter main
-    addi sp, sp, -16
+    addi sp, sp, -32
     sw  ra, 0(sp)
     sw  s0, 4(sp) # address of GPIO registers
-    sw  s1, 8(sp) # address of 7 Segment registers
+    sw  s1, 8(sp) # counter
+    sw  s2, 12(sp) # previous buttons
+    sw  s3, 16(sp) # LED values
+    sw  s4, 20(sp) # stepTime
     
     li  s0, 0x80001400   # base address of GPIO memory-mapped registers
     li  t1, 0xFFFF       # set direction of GPIOs
@@ -29,7 +32,10 @@ main:
 repeat:
     # read switches
     lw  t0, (s0)
-    srli t0, t0, 16    
+    srli t0, t0, 16
+
+    # convert to decimal representation
+    
 
     # write switches value to 7seg
     sw  t0, 4(s1)
@@ -40,6 +46,9 @@ repeat:
     lw  ra, 0(sp)
     lw  s0, 4(sp)
     lw  s1, 8(sp)
-    addi sp, sp, 16
+    lw  s2, 12(sp)
+    lw  s3, 16(sp) # LED values
+    lw  s4, 20(sp) # stepTime
+    addi sp, sp, 32
 
     ret
