@@ -111,33 +111,46 @@ void GPIO_Initialization(void)
 }
 
 
+void PTC_Initialization(void){
+
+  M_PSP_WRITE_REGISTER_32(RPTC_LRC,0x18000);
+  M_PSP_WRITE_REGISTER_32(RPTC_CTRL,0xC0);
+  M_PSP_WRITE_REGISTER_32(RPTC_CTRL,0x21);
+}
+
+
+void PTC_ISR(void){
+  
+  // write the 7Segment count
+  M_PSP_WRITE_REGISTER_32(SegDig_ADDR, SegDisplCount++);
+
+  /* Restart PTC */
+  M_PSP_WRITE_REGISTER_32(RPTC_CTRL,0xC0);
+  M_PSP_WRITE_REGISTER_32(RPTC_CTRL,0x21);
+
+  /* Stop the generation of the specific external interrupt */
+  bspClearExtInterrupt(3);
+}
+
+
 int main(void)
 {
-  int count=0, i;
-
   /* INITIALIZE THE INTERRUPT SYSTEM */
   DefaultInitialization();                            /* Default initialization */
   pspExtInterruptsSetThreshold(5);                    /* Set interrupts threshold to 5 */
 
-  /* INITIALIZE INTERRUPT LINE IRQ4 */
+  /* INITIALIZE INTERRUPT LINE IRQ4 AND IRQ3*/
   ExternalIntLine_Initialization(4, 6, GPIO_ISR);     /* Initialize line IRQ4 with a priority of 6. Set GPIO_ISR as the Interrupt Service Routine */
-  M_PSP_WRITE_REGISTER_32(Select_INT, 0x1);           /* Connect the GPIO interrupt to the IRQ4 interrupt line */
+  ExternalIntLine_Initialization(3, 6, PTC_ISR);     /* Initialize line IRQ3 with a priority of 6. Set PTC_ISR as the Interrupt Service Routine */
+  M_PSP_WRITE_REGISTER_32(Select_INT, 0x3);           /* Connect the GPIO and PTC interrupts to IRQ4 and IRQ3 interrupt lines, respectively */
 
   /* INITIALIZE THE PERIPHERALS */
   GPIO_Initialization();                              /* Initialize the GPIO */
   M_PSP_WRITE_REGISTER_32(SegEn_ADDR, 0x0);           /* Initialize the 7-Seg Displays */
+  PTC_Initialization();                               /* Initialize the PTC */
 
   /* ENABLE INTERRUPTS */
   pspInterruptsEnable();                              /* Enable all interrupts in mstatus CSR */
   M_PSP_SET_CSR(D_PSP_MIE_NUM, D_PSP_MIE_MEIE_MASK);  /* Enable external interrupts in mie CSR */
-
-  while (1) {
-    /* Increase 7-Seg Displays */
-    M_PSP_WRITE_REGISTER_32(SegDig_ADDR, count);
-    count++;
-
-    /* Delay */
-    for(i=0;i<50000;i++);
-  }
 }
 
