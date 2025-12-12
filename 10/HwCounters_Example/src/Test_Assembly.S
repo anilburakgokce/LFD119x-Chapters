@@ -4,8 +4,8 @@
 
 Test_Assembly:
 
-# li t2, 0x001            # Disable Pipelined Execution
-# csrrs t1, 0x7F9, t2
+li t2, 0x400            # Disable Pipelined Execution
+csrrs t1, 0x7F9, t2
 
 li t1, 0x1                
 li t3, 0x3                

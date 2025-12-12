@@ -35,7 +35,7 @@ int main(void)
    pspPerformanceCounterSet(D_PSP_COUNTER3, E_I_BUS_TRANSACTIONS_INSTR);
 
    /* Modify core features as desired */
-   __asm("li t2, 0x000");
+   __asm("li t2, 0x400");
    __asm("csrrs t1, 0x7F9, t2");
 
    /* Invert Switch to execute CoreMark*/ 
